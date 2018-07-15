@@ -11,7 +11,10 @@ const patch = snabbdom.init([
 ]);
 
 
-var vnode = h('div', {style: {fontWeight: 'bold'}}, 'Hello world');
+const vnode = h('div', {style: {fontWeight: 'bold'}}, 'Hello world');
 patch(document.getElementById('placeholder'), vnode);
+
+const vnode2 = h('p', {style: {color: '#333'}}, '이런 거구나!');
+patch(document.getElementById('vnode2'), vnode2);
 
 
