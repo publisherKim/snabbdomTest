@@ -1,5 +1,5 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -11,18 +11,31 @@ var _snabbdomH = require('snabbdom/h');
 
 var _snabbdomH2 = _interopRequireDefault(_snabbdomH);
 
-var patch = _snabbdom2['default'].init([require('snabbdom/modules/class'), // makes it easy to toggle classes
-require('snabbdom/modules/props'), // for setting properties on DOM elements
-require('snabbdom/modules/style'), // handles styling on elements with support for animations
-require('snabbdom/modules/eventlisteners')]);
+var patch = _snabbdom2['default'].init([
+// require('snabbdom/modules/class'),          // makes it easy to toggle classes
+// require('snabbdom/modules/props'),          // for setting properties on DOM elements
+require('snabbdom/modules/style')]);
 
+// handles styling on elements with support for animations
+// require('snabbdom/modules/eventlisteners'), // attaches event listeners
 var vnode = (0, _snabbdomH2['default'])('div', { style: { fontWeight: 'bold' } }, 'Hello world');
 patch(document.getElementById('placeholder'), vnode);
-// attaches event listeners
 
-},{"snabbdom":8,"snabbdom/h":2,"snabbdom/modules/class":4,"snabbdom/modules/eventlisteners":5,"snabbdom/modules/props":6,"snabbdom/modules/style":7}],2:[function(require,module,exports){
+var vnode2 = (0, _snabbdomH2['default'])('p', { style: { color: '#ff6600' } }, '딱히 아직까지 서비스에 쓰일만한 장점들은 보이진 않는다.\n 음 모듈별로 제공해주는 무언가가 있는 것 같다.\n 토글을 편하게 해준다든지\n 돔 속성을 세팅해준다든지 등등등\n 이벤트 리스너 모듈등도 있는걸 보아하니 장점이 조금은 있어 보인다.\n 지금 필요한 기능은 스타일 정도이다.\n');
+patch(document.getElementById('vnode2'), vnode2);
+
+},{"snabbdom":5,"snabbdom/h":2,"snabbdom/modules/style":4}],2:[function(require,module,exports){
 var VNode = require('./vnode');
 var is = require('./is');
+
+function addNS(data, children) {
+  data.ns = 'http://www.w3.org/2000/svg';
+  if (children !== undefined) {
+    for (var i = 0; i < children.length; ++i) {
+      addNS(children[i].data, children[i].children);
+    }
+  }
+}
 
 module.exports = function h(sel, b, c) {
   var data = {}, children, text, i;
@@ -40,85 +53,19 @@ module.exports = function h(sel, b, c) {
       if (is.primitive(children[i])) children[i] = VNode(undefined, undefined, undefined, children[i]);
     }
   }
+  if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g') {
+    addNS(data, children);
+  }
   return VNode(sel, data, children, text, undefined);
 };
 
-},{"./is":3,"./vnode":9}],3:[function(require,module,exports){
+},{"./is":3,"./vnode":6}],3:[function(require,module,exports){
 module.exports = {
   array: Array.isArray,
   primitive: function(s) { return typeof s === 'string' || typeof s === 'number'; },
 };
 
 },{}],4:[function(require,module,exports){
-function updateClass(oldVnode, vnode) {
-  var cur, name, elm = vnode.elm,
-      oldClass = oldVnode.data.class || {},
-      klass = vnode.data.class || {};
-  for (name in klass) {
-    cur = klass[name];
-    if (cur !== oldClass[name]) {
-      elm.classList[cur ? 'add' : 'remove'](name);
-    }
-  }
-}
-
-module.exports = {create: updateClass, update: updateClass};
-
-},{}],5:[function(require,module,exports){
-var is = require('../is');
-
-function arrInvoker(arr) {
-  return function() { arr[0](arr[1]); };
-}
-
-function fnInvoker(arr) {
-  return function(ev) { arr[0](ev); };
-}
-
-function updateEventListeners(oldVnode, vnode) {
-  var name, cur, old, elm = vnode.elm,
-      oldOn = oldVnode.data.on || {}, on = vnode.data.on;
-  if (!on) return;
-  for (name in on) {
-    cur = on[name];
-    old = oldOn[name];
-    if (old === undefined) {
-      if (is.array(cur)) {
-        elm.addEventListener(name, arrInvoker(cur));
-      } else {
-        cur = [cur];
-        on[name] = cur;
-        elm.addEventListener(name, fnInvoker(cur));
-      }
-    } else if (old.length === 2) {
-      old[0] = cur[0]; // Deliberately modify old array since it's
-      old[1] = cur[1]; // captured in closure created with `arrInvoker`
-      on[name]  = old;
-    } else {
-      old[0] = cur;
-      on[name] = old;
-    }
-  }
-}
-
-module.exports = {create: updateEventListeners, update: updateEventListeners};
-
-},{"../is":3}],6:[function(require,module,exports){
-function updateProps(oldVnode, vnode) {
-  var key, cur, old, elm = vnode.elm,
-      oldProps = oldVnode.data.props || {}, props = vnode.data.props || {};
-  for (key in props) {
-    cur = props[key];
-    old = oldProps[key];
-    if (old !== cur) {
-      elm[key] = cur;
-    }
-  }
-}
-
-module.exports = {create: updateProps, update: updateProps};
-
-},{}],7:[function(require,module,exports){
 var raf = requestAnimationFrame || setTimeout;
 var nextFrame = function(fn) { raf(function() { raf(fn); }); };
 
@@ -179,7 +126,7 @@ function applyRemoveStyle(vnode, rm) {
 
 module.exports = {create: updateStyle, update: updateStyle, destroy: applyDestroyStyle, remove: applyRemoveStyle};
 
-},{}],8:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // jshint newcap: false
 /* global require, module, document, Element */
 'use strict';
@@ -195,8 +142,6 @@ function emptyNodeAt(elm) {
 }
 
 var emptyNode = VNode('', {}, [], undefined, undefined);
-
-var insertedVnodeQueue;
 
 function sameVnode(vnode1, vnode2) {
   return vnode1.key === vnode2.key && vnode1.sel === vnode2.sel;
@@ -228,7 +173,7 @@ function init(modules) {
     }
   }
 
-  function createElm(vnode) {
+  function createElm(vnode, insertedVnodeQueue) {
     var i, data = vnode.data;
     if (isDef(data)) {
       if (isDef(i = data.hook) && isDef(i = i.init)) i(vnode);
@@ -248,7 +193,7 @@ function init(modules) {
       if (dotIdx > 0) elm.className = sel.slice(dot+1).replace(/\./g, ' ');
       if (is.array(children)) {
         for (i = 0; i < children.length; ++i) {
-          elm.appendChild(createElm(children[i]));
+          elm.appendChild(createElm(children[i], insertedVnodeQueue));
         }
       } else if (is.primitive(vnode.text)) {
         elm.appendChild(document.createTextNode(vnode.text));
@@ -265,9 +210,9 @@ function init(modules) {
     return vnode.elm;
   }
 
-  function addVnodes(parentElm, before, vnodes, startIdx, endIdx) {
+  function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
     for (; startIdx <= endIdx; ++startIdx) {
-      parentElm.insertBefore(createElm(vnodes[startIdx]), before);
+      parentElm.insertBefore(createElm(vnodes[startIdx], insertedVnodeQueue), before);
     }
   }
 
@@ -305,7 +250,7 @@ function init(modules) {
     }
   }
 
-  function updateChildren(parentElm, oldCh, newCh) {
+  function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
     var oldStartIdx = 0, newStartIdx = 0;
     var oldEndIdx = oldCh.length - 1;
     var oldStartVnode = oldCh[0];
@@ -321,20 +266,20 @@ function init(modules) {
       } else if (isUndef(oldEndVnode)) {
         oldEndVnode = oldCh[--oldEndIdx];
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
-        patchVnode(oldStartVnode, newStartVnode);
+        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
         oldStartVnode = oldCh[++oldStartIdx];
         newStartVnode = newCh[++newStartIdx];
       } else if (sameVnode(oldEndVnode, newEndVnode)) {
-        patchVnode(oldEndVnode, newEndVnode);
+        patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
         oldEndVnode = oldCh[--oldEndIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
-        patchVnode(oldStartVnode, newEndVnode);
+        patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
         parentElm.insertBefore(oldStartVnode.elm, oldEndVnode.elm.nextSibling);
         oldStartVnode = oldCh[++oldStartIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
-        patchVnode(oldEndVnode, newStartVnode);
+        patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
         parentElm.insertBefore(oldEndVnode.elm, oldStartVnode.elm);
         oldEndVnode = oldCh[--oldEndIdx];
         newStartVnode = newCh[++newStartIdx];
@@ -342,11 +287,11 @@ function init(modules) {
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
         idxInOld = oldKeyToIdx[newStartVnode.key];
         if (isUndef(idxInOld)) { // New element
-          parentElm.insertBefore(createElm(newStartVnode), oldStartVnode.elm);
+          parentElm.insertBefore(createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
           newStartVnode = newCh[++newStartIdx];
         } else {
           elmToMove = oldCh[idxInOld];
-          patchVnode(elmToMove, newStartVnode);
+          patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
           oldCh[idxInOld] = undefined;
           parentElm.insertBefore(elmToMove.elm, oldStartVnode.elm);
           newStartVnode = newCh[++newStartIdx];
@@ -355,13 +300,13 @@ function init(modules) {
     }
     if (oldStartIdx > oldEndIdx) {
       before = isUndef(newCh[newEndIdx+1]) ? null : newCh[newEndIdx+1].elm;
-      addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx);
+      addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
     } else if (newStartIdx > newEndIdx) {
       removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
     }
   }
 
-  function patchVnode(oldVnode, vnode) {
+  function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
     var i, hook;
     if (isDef(i = vnode.data) && isDef(hook = i.hook) && isDef(i = hook.prepatch)) {
       i(oldVnode, vnode);
@@ -377,9 +322,9 @@ function init(modules) {
     }
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
-        if (oldCh !== ch) updateChildren(elm, oldCh, ch);
+        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue);
       } else if (isDef(ch)) {
-        addVnodes(elm, null, ch, 0, ch.length - 1);
+        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
       } else if (isDef(oldCh)) {
         removeVnodes(elm, oldCh, 0, oldCh.length - 1);
       }
@@ -389,28 +334,26 @@ function init(modules) {
     if (isDef(hook) && isDef(i = hook.postpatch)) {
       i(oldVnode, vnode);
     }
-    return vnode;
   }
 
   return function(oldVnode, vnode) {
     var i;
-    insertedVnodeQueue = [];
+    var insertedVnodeQueue = [];
     for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
     if (oldVnode instanceof Element) {
       if (oldVnode.parentElement !== null) {
-        createElm(vnode);
+        createElm(vnode, insertedVnodeQueue);
         oldVnode.parentElement.replaceChild(vnode.elm, oldVnode);
       } else {
         oldVnode = emptyNodeAt(oldVnode);
-        patchVnode(oldVnode, vnode);
+        patchVnode(oldVnode, vnode, insertedVnodeQueue);
       }
     } else {
-      patchVnode(oldVnode, vnode);
+      patchVnode(oldVnode, vnode, insertedVnodeQueue);
     }
     for (i = 0; i < insertedVnodeQueue.length; ++i) {
       insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
     }
-    insertedVnodeQueue = undefined;
     for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
     return vnode;
   };
@@ -418,7 +361,7 @@ function init(modules) {
 
 module.exports = {init: init};
 
-},{"./is":3,"./vnode":9}],9:[function(require,module,exports){
+},{"./is":3,"./vnode":6}],6:[function(require,module,exports){
 module.exports = function(sel, data, children, text, elm) {
   var key = data === undefined ? undefined : data.key;
   return {sel: sel, data: data, children: children,
