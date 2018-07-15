@@ -21,8 +21,8 @@ const vnode2 = h('p', {style: {color: '#ff6600'}},
  돔 속성을 세팅해준다든지 등등등
  이벤트 리스너 모듈등도 있는걸 보아하니 장점이 조금은 있어 보인다.
  지금 필요한 기능은 스타일 정도이다.
-`
-);
+`);
+
 patch(document.getElementById('vnode2'), vnode2);
 
 
