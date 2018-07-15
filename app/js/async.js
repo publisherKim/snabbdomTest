@@ -6,7 +6,7 @@ import asyncMessage from './asyncMessage';
 const INIT = Symbol('INIT');
 
 const msg = asyncMessage(cb => 
-  setTimeout(() => cb('Hello async'), 2000)
+  setTimeout(() => cb('여기가 값이죠 cb로 또 분리 해났죠!!! 이게더 심플하고 좋은 코드라고 생각했겠죠'), 2000)
 );
 
 // model : { message: String, pending: Number }
