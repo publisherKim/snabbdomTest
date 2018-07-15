@@ -11,19 +11,20 @@ var _snabbdomH = require('snabbdom/h');
 
 var _snabbdomH2 = _interopRequireDefault(_snabbdomH);
 
-var patch = _snabbdom2['default'].init([require('snabbdom/modules/class'), // makes it easy to toggle classes
-require('snabbdom/modules/props'), // for setting properties on DOM elements
-require('snabbdom/modules/style'), // handles styling on elements with support for animations
-require('snabbdom/modules/eventlisteners')]);
+var patch = _snabbdom2['default'].init([
+// require('snabbdom/modules/class'),          // makes it easy to toggle classes
+// require('snabbdom/modules/props'),          // for setting properties on DOM elements
+require('snabbdom/modules/style')]);
 
-// attaches event listeners
+// handles styling on elements with support for animations
+// require('snabbdom/modules/eventlisteners'), // attaches event listeners
 var vnode = (0, _snabbdomH2['default'])('div', { style: { fontWeight: 'bold' } }, 'Hello world');
 patch(document.getElementById('placeholder'), vnode);
 
-var vnode2 = (0, _snabbdomH2['default'])('p', { style: { color: '#333' } }, '이런 거구나!');
+var vnode2 = (0, _snabbdomH2['default'])('p', { style: { color: '#ff6600' } }, '딱히 아직까지 서비스에 쓰일만한 장점들은 보이진 않는다.\n 음 모듈별로 제공해주는 무언가가 있는 것 같다.\n 토글을 편하게 해준다든지\n 돔 속성을 세팅해준다든지 등등등\n 이벤트 리스너 모듈등도 있는걸 보아하니 장점이 조금은 있어 보인다.\n 지금 필요한 기능은 스타일 정도이다.\n');
 patch(document.getElementById('vnode2'), vnode2);
 
-},{"snabbdom":8,"snabbdom/h":2,"snabbdom/modules/class":4,"snabbdom/modules/eventlisteners":5,"snabbdom/modules/props":6,"snabbdom/modules/style":7}],2:[function(require,module,exports){
+},{"snabbdom":5,"snabbdom/h":2,"snabbdom/modules/style":4}],2:[function(require,module,exports){
 var VNode = require('./vnode');
 var is = require('./is');
 
@@ -58,86 +59,13 @@ module.exports = function h(sel, b, c) {
   return VNode(sel, data, children, text, undefined);
 };
 
-},{"./is":3,"./vnode":9}],3:[function(require,module,exports){
+},{"./is":3,"./vnode":6}],3:[function(require,module,exports){
 module.exports = {
   array: Array.isArray,
   primitive: function(s) { return typeof s === 'string' || typeof s === 'number'; },
 };
 
 },{}],4:[function(require,module,exports){
-function updateClass(oldVnode, vnode) {
-  var cur, name, elm = vnode.elm,
-      oldClass = oldVnode.data.class || {},
-      klass = vnode.data.class || {};
-  for (name in klass) {
-    cur = klass[name];
-    if (cur !== oldClass[name]) {
-      elm.classList[cur ? 'add' : 'remove'](name);
-    }
-  }
-}
-
-module.exports = {create: updateClass, update: updateClass};
-
-},{}],5:[function(require,module,exports){
-var is = require('../is');
-
-function arrInvoker(arr) {
-  return function() {
-    // Special case when length is two, for performance
-    arr.length === 2 ? arr[0](arr[1]) : arr[0].apply(undefined, arr.slice(1));
-  };
-}
-
-function fnInvoker(o) {
-  return function(ev) { o.fn(ev); };
-}
-
-function updateEventListeners(oldVnode, vnode) {
-  var name, cur, old, elm = vnode.elm,
-      oldOn = oldVnode.data.on || {}, on = vnode.data.on;
-  if (!on) return;
-  for (name in on) {
-    cur = on[name];
-    old = oldOn[name];
-    if (old === undefined) {
-      if (is.array(cur)) {
-        elm.addEventListener(name, arrInvoker(cur));
-      } else {
-        cur = {fn: cur};
-        on[name] = cur;
-        elm.addEventListener(name, fnInvoker(cur));
-      }
-    } else if (is.array(old)) {
-      // Deliberately modify old array since it's captured in closure created with `arrInvoker`
-      old.length = cur.length;
-      for (var i = 0; i < old.length; ++i) old[i] = cur[i];
-      on[name]  = old;
-    } else {
-      old.fn = cur;
-      on[name] = old;
-    }
-  }
-}
-
-module.exports = {create: updateEventListeners, update: updateEventListeners};
-
-},{"../is":3}],6:[function(require,module,exports){
-function updateProps(oldVnode, vnode) {
-  var key, cur, old, elm = vnode.elm,
-      oldProps = oldVnode.data.props || {}, props = vnode.data.props || {};
-  for (key in props) {
-    cur = props[key];
-    old = oldProps[key];
-    if (old !== cur) {
-      elm[key] = cur;
-    }
-  }
-}
-
-module.exports = {create: updateProps, update: updateProps};
-
-},{}],7:[function(require,module,exports){
 var raf = requestAnimationFrame || setTimeout;
 var nextFrame = function(fn) { raf(function() { raf(fn); }); };
 
@@ -198,7 +126,7 @@ function applyRemoveStyle(vnode, rm) {
 
 module.exports = {create: updateStyle, update: updateStyle, destroy: applyDestroyStyle, remove: applyRemoveStyle};
 
-},{}],8:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // jshint newcap: false
 /* global require, module, document, Element */
 'use strict';
@@ -433,7 +361,7 @@ function init(modules) {
 
 module.exports = {init: init};
 
-},{"./is":3,"./vnode":9}],9:[function(require,module,exports){
+},{"./is":3,"./vnode":6}],6:[function(require,module,exports){
 module.exports = function(sel, data, children, text, elm) {
   var key = data === undefined ? undefined : data.key;
   return {sel: sel, data: data, children: children,
